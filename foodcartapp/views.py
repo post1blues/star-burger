@@ -64,6 +64,18 @@ def register_order(request):
     if request.method == 'POST':
         order = request.data
 
+        if 'products' not in order:
+            return Response({'error': 'products: Обязательное поле'})
+
+        if order['products'] is None:
+            return Response({'error': 'products: Это поле не может быть пустым'})
+
+        if not order['products']:
+            return Response({'error': 'products: Этот список не может быть пустым'})
+
+        if isinstance(order['products'], str):
+            return Response({'error': 'Ожидался list со значениями, но был получен "str"'})
+
         created_order = Order(
             first_name=order['firstname'],
             last_name=order['lastname'],
