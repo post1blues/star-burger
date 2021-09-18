@@ -129,13 +129,27 @@ class Order(models.Model):
     last_name = models.CharField(max_length=50)
     phone_number = PhoneNumberField()
     address = models.CharField(max_length=100)
-    products = models.ManyToManyField(Product)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.firstname} {self.lastname} - {self.address}'
+        return f'{self.first_name} {self.last_name} - {self.address}'
 
     class Meta:
         verbose_name = 'заказ'
         verbose_name_plural = 'заказы'
+        ordering = ('-created_at',)
 
+    def get_total_cost(self):
+        return sum(item.get_cost() for item in self.items.all())
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, related_name='order_items', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f'Order: {self.id} - {self.product.name} ({self.quantity})'
+
+    def get_cost(self):
+        return self.product.price * self.quantity

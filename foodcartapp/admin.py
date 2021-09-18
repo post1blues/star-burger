@@ -3,7 +3,7 @@ from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.utils.html import format_html
 
-from .models import Product, Order
+from .models import Product, Order, OrderItem
 from .models import ProductCategory
 from .models import Restaurant
 from .models import RestaurantMenuItem
@@ -106,6 +106,16 @@ class ProductAdmin(admin.ModelAdmin):
     pass
 
 
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+
+
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['get_fullname', 'address']
+    list_filter = ['created_at']
+    inlines = [OrderItemInline]
+
+    def get_fullname(self, obj):
+        return f'{obj.first_name} {obj.last_name}'
