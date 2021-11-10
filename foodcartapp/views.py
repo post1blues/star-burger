@@ -1,10 +1,10 @@
 from django.http import JsonResponse
 from django.templatetags.static import static
-import json
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from .models import Product, Order, OrderItem
+from .serializers import OrderSerializer
 
 
 def banners_list_api(request):
@@ -62,33 +62,24 @@ def product_list_api(request):
 @api_view(['GET', 'POST'])
 def register_order(request):
     if request.method == 'POST':
-        order = request.data
+        serializer = OrderSerializer(data=request.data)
 
-        if 'products' not in order:
-            return Response({'error': 'products: Обязательное поле'})
-
-        if order['products'] is None:
-            return Response({'error': 'products: Это поле не может быть пустым'})
-
-        if not order['products']:
-            return Response({'error': 'products: Этот список не может быть пустым'})
-
-        if isinstance(order['products'], str):
-            return Response({'error': 'Ожидался list со значениями, но был получен "str"'})
+        serializer.is_valid(raise_exception=True)
 
         created_order = Order(
-            first_name=order['firstname'],
-            last_name=order['lastname'],
-            phone_number=order['phonenumber'],
-            address=order['address']
+            firstname=serializer.validated_data['firstname'],
+            lastname=serializer.validated_data['lastname'],
+            phonenumber=serializer.validated_data['phonenumber'],
+            address=serializer.validated_data['address']
         )
         created_order.save()
 
-        for product in order['products']:
-            order_item = OrderItem(
+        order_items = [OrderItem(
                 order=created_order,
                 quantity=product['quantity'],
                 product=Product.objects.get(id=product['product'])
-            )
-            order_item.save()
+            ) for product in serializer.validated_data['products']]
+
+        OrderItem.objects.bulk_create(order_items)
+
     return Response({})
