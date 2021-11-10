@@ -172,6 +172,12 @@ class OrderItem(models.Model):
         default=1,
         validators=[MinValueValidator(1)]
     )
+    price = models.DecimalField(
+        decimal_places=2,
+        max_digits=10,
+        validators=[MinValueValidator(0)],
+        null=True
+    )
 
     def __str__(self):
         return f'Order: {self.id} - {self.product.name} ({self.quantity})'
