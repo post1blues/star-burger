@@ -129,10 +129,11 @@ class Order(models.Model):
     lastname = models.CharField(max_length=50)
     phonenumber = PhoneNumberField()
     address = models.CharField(max_length=100)
+    processed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.first_name} {self.last_name} - {self.address}'
+        return f'{self.firstname} {self.lastname} - {self.address}'
 
     class Meta:
         verbose_name = 'заказ'
@@ -144,12 +145,27 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, related_name='order_items', on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
+    order = models.ForeignKey(
+        Order,
+        related_name='items',
+        on_delete=models.CASCADE
+    )
+    product = models.ForeignKey(
+        Product,
+        related_name='order_items',
+        on_delete=models.CASCADE
+    )
+    quantity = models.PositiveIntegerField(
+        default=1,
+        validators=[MinValueValidator(1)]
+    )
 
     def __str__(self):
         return f'Order: {self.id} - {self.product.name} ({self.quantity})'
+
+    class Meta:
+        verbose_name = 'элемент заказа'
+        verbose_name_plural = 'элементы заказа',
 
     def get_cost(self):
         return self.product.price * self.quantity
