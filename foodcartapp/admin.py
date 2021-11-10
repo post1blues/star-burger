@@ -118,4 +118,4 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderItemInline]
 
     def get_fullname(self, obj):
-        return f'{obj.first_name} {obj.last_name}'
+        return f'{obj.firstname} {obj.lastname}'
