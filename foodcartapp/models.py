@@ -127,7 +127,7 @@ class RestaurantMenuItem(models.Model):
 
 class OrderQuerySet(models.QuerySet):
     def annotate_with_order_price(self):
-        order_price = Sum(F('items__quantity') * F('items__product__price'))
+        order_price = Sum(F('items__quantity') * F('items__price'))
 
         orders_with_prices = Order.objects.prefetch_related('items') \
             .annotate(price=order_price)
