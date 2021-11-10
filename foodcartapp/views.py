@@ -61,25 +61,28 @@ def product_list_api(request):
 
 @api_view(['GET', 'POST'])
 def register_order(request):
+    response = {}
+
     if request.method == 'POST':
         serializer = OrderSerializer(data=request.data)
 
         serializer.is_valid(raise_exception=True)
 
-        created_order = Order(
+        order = Order.objects.create(
             firstname=serializer.validated_data['firstname'],
             lastname=serializer.validated_data['lastname'],
             phonenumber=serializer.validated_data['phonenumber'],
             address=serializer.validated_data['address']
         )
-        created_order.save()
 
         order_items = [OrderItem(
-                order=created_order,
+                order=order,
                 quantity=product['quantity'],
-                product=Product.objects.get(id=product['product'])
+                product=product['product']
             ) for product in serializer.validated_data['products']]
 
         OrderItem.objects.bulk_create(order_items)
 
-    return Response({})
+        response = OrderSerializer(order).data
+
+    return Response(response)
