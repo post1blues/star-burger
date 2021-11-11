@@ -136,11 +136,19 @@ class OrderQuerySet(models.QuerySet):
 
 
 class Order(models.Model):
+
+    ORDER_STATUSES = [
+        ('waiting', 'Необработанный'),
+        ('in process', 'Готовится'),
+        ('done', 'Сделан'),
+        ('canceled', 'Отменен')
+    ]
+
     firstname = models.CharField(max_length=50)
     lastname = models.CharField(max_length=50)
     phonenumber = PhoneNumberField()
     address = models.CharField(max_length=100)
-    processed = models.BooleanField(default=False)
+    status = models.CharField(default='waiting', choices=ORDER_STATUSES, max_length=20)
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = OrderQuerySet.as_manager()

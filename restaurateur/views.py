@@ -97,7 +97,7 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.order_by('created_at').filter(processed=False).annotate_with_order_price()
+    orders = Order.objects.order_by('created_at').filter(status='waiting').annotate_with_order_price()
     return render(request, template_name='order_items.html', context={
         'orders': orders
     })
