@@ -2,14 +2,12 @@ from django import forms
 from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
-
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
-
 from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem
-from restaurateur.services import fetch_coordinates, calc_distance
+from geo_places.models import Address
 
 
 class Login(forms.Form):
@@ -102,18 +100,50 @@ def view_orders(request):
                                            .prefetch_related('product')\
                                            .filter(availability=True)
 
-    orders = Order.objects\
-                          .filter(status='waiting')\
+    orders = Order.objects.filter(status='waiting')\
                           .annotate_with_order_price()
 
     for order in orders:
         order_products = [order_item.product for order_item in order.items.all().distinct()]
         available_restaurants = [menu_item.restaurant for menu_item in menu_items.filter(product__in=order_products)]
         order.restaurants = available_restaurants
-        order_address_pos = fetch_coordinates(order.address)
+
+        addresses = Address.objects.all()
+        addresses_to_create = []
+
+        order_address = None
+        for address in addresses:
+            if address.title == order.address:
+                order_address = address
+                break
+
+        if not order_address:
+            order_address_pos = Address.fetch_coordinates(order.address)
+            order_address = Address(
+                title=order.address,
+                lon=order_address_pos[0],
+                lat=order_address_pos[1]
+            )
+            addresses_to_create.append(order_address)
+
         for restaurant in order.restaurants:
-            restaurant_pos = fetch_coordinates(restaurant.address)
-            restaurant.order_distance = calc_distance(restaurant_pos, order_address_pos)
+            restaurant_address = None
+            for address in addresses:
+                if restaurant.address == address.title:
+                    restaurant_address = address
+                    break
+
+            if not restaurant_address:
+                restaurant_pos = Address.fetch_coordinates(restaurant.address)
+                restaurant_address = Address(
+                    title=restaurant.address,
+                    lon=restaurant_pos[0],
+                    lat=restaurant_pos[1]
+                )
+                addresses_to_create.append(restaurant_address)
+            restaurant.order_distance = Address.calc_distance(restaurant_address, order_address)
+
+        Address.objects.bulk_create(addresses_to_create)
 
         order.restaurants = sorted(order.restaurants, key=lambda x: x.order_distance)
 

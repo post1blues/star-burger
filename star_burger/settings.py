@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'rest_framework',
     'debug_toolbar',
+
+    'geo_places.apps.GeoPlacesConfig',
 ]
 
 MIDDLEWARE = [
