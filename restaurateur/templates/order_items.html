@@ -38,7 +38,7 @@
         <td><details><summary><b>Развернуть</b></summary>
           <ul>
             {% for restaurant in order.restaurants %}
-              <li>{{ restaurant }}</li>
+              <li>{{ restaurant }} - {{ restaurant.order_distance }} км.</li>
             {% endfor %}
           </ul>
         </details></td>

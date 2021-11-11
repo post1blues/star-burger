@@ -9,6 +9,7 @@ from django.contrib.auth import views as auth_views
 
 
 from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem
+from restaurateur.services import fetch_coordinates, calc_distance
 
 
 class Login(forms.Form):
@@ -109,6 +110,12 @@ def view_orders(request):
         order_products = [order_item.product for order_item in order.items.all().distinct()]
         available_restaurants = [menu_item.restaurant for menu_item in menu_items.filter(product__in=order_products)]
         order.restaurants = available_restaurants
+        order_address_pos = fetch_coordinates(order.address)
+        for restaurant in order.restaurants:
+            restaurant_pos = fetch_coordinates(restaurant.address)
+            restaurant.order_distance = calc_distance(restaurant_pos, order_address_pos)
+
+        order.restaurants = sorted(order.restaurants, key=lambda x: x.order_distance)
 
     return render(request, template_name='order_items.html', context={
         'orders': orders
