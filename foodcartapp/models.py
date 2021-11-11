@@ -148,6 +148,7 @@ class Order(models.Model):
     lastname = models.CharField(max_length=50)
     phonenumber = PhoneNumberField()
     address = models.CharField(max_length=100)
+    comment = models.TextField(max_length=500, blank=True)
     status = models.CharField(default='waiting', choices=ORDER_STATUSES, max_length=20)
     created_at = models.DateTimeField(auto_now_add=True)
 
