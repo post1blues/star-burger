@@ -145,15 +145,21 @@ class Order(models.Model):
         ('canceled', 'Отменен')
     ]
 
+    PAYMENT_METHODS = [
+        ('cash', 'Наличные'),
+        ('bank_card', 'Оплата картой'),
+    ]
+
     firstname = models.CharField(max_length=50)
     lastname = models.CharField(max_length=50)
     phonenumber = PhoneNumberField()
     address = models.CharField(max_length=100)
+    payment_method = models.CharField(max_length=20, default='cash', choices=PAYMENT_METHODS)
     comment = models.TextField(max_length=500, blank=True)
     status = models.CharField(default='waiting', choices=ORDER_STATUSES, max_length=20)
     created_at = models.DateTimeField(default=timezone.now)
-    called_at = models.DateTimeField(null=True)
-    delivered_at = models.DateTimeField(null=True)
+    called_at = models.DateTimeField(blank=True)
+    delivered_at = models.DateTimeField(blank=True)
 
     objects = OrderQuerySet.as_manager()
 
