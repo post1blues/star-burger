@@ -78,8 +78,6 @@ def register_order(request):
             address=serializer.validated_data['address']
         )
 
-        products = [product['product'] for product in serializer.validated_data['products']]
-
         order_items = [OrderItem(
                 order=order,
                 quantity=product['quantity'],
@@ -88,14 +86,6 @@ def register_order(request):
             ) for product in serializer.validated_data['products']]
 
         OrderItem.objects.bulk_create(order_items)
-
-        menu_items = RestaurantMenuItem.objects.prefetch_related('restaurant').prefetch_related('product')\
-            .filter(availability=True, product__in=products)
-
-        available_restaurants = [menu_item.restaurant for menu_item in menu_items]
-
-        order.restaurant = available_restaurants[0]
-        order.save()
 
         response = OrderSerializer(order).data
 

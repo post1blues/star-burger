@@ -21,6 +21,7 @@
       <th>Телефон</th>
       <th>Адрес доставки</th>
       <th>Комментарий</th>
+      <th>Рестораны</th>
       <th>Ссылка на админку</th>
     </tr>
 
@@ -32,32 +33,18 @@
         <td>{{ order.price }} руб.</td>
         <td>{{ order.firstname }} {{ order.lastname}}</td>
         <td>{{ order.phonenumber }}</td>
-        <td><details><summary>{{ order.address }}</summary>{{ order.restaurant }}</details></td>
+        <td>{{ order.address }}</td>
         <td>{{ order.comment }}</td>
+        <td><details><summary><b>Развернуть</b></summary>
+          <ul>
+            {% for restaurant in order.restaurants %}
+              <li>{{ restaurant }}</li>
+            {% endfor %}
+          </ul>
+        </details></td>
         <td><a href="{% url 'admin:foodcartapp_order_change' object_id=order.id %}?next={{ request.get_full_path|urlencode }}">Редактировать</a></td>
       </tr>
     {% endfor %}
    </table>
   </div>
-
-<style>
-  details {
-    padding: .5em .5em 0;
-}
-
-summary {
-    font-weight: bold;
-    margin: -.5em -.5em 0;
-    padding: .5em;
-}
-
-details[open] {
-    padding: .5em;
-}
-
-details[open] summary {
-    border-bottom: 1px solid #aaa;
-    margin-bottom: .5em;
-}
-</style>
 {% endblock %}

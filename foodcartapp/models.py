@@ -157,7 +157,6 @@ class Order(models.Model):
     payment_method = models.CharField(max_length=20, default='cash', choices=PAYMENT_METHODS)
     comment = models.TextField(max_length=500, blank=True)
     status = models.CharField(default='waiting', choices=ORDER_STATUSES, max_length=20)
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(default=timezone.now)
     called_at = models.DateTimeField(blank=True, null=True)
     delivered_at = models.DateTimeField(blank=True, null=True)
