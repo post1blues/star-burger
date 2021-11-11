@@ -117,7 +117,7 @@ class OrderItemInline(admin.TabularInline):
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['get_fullname', 'address']
     list_filter = ['created_at']
-    inlines = [OrderItemInline]
+    inlines = [OrderItemInline, ]
 
     def get_fullname(self, obj):
         return f'{obj.firstname} {obj.lastname}'
