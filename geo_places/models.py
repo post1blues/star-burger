@@ -6,14 +6,17 @@ from geopy import distance
 
 
 class Address(models.Model):
-    title = models.CharField(max_length=100, unique=True)
-    lat = models.DecimalField(max_digits=22, decimal_places=16)
-    lon = models.DecimalField(max_digits=22, decimal_places=16)
-    requested_at = models.DateTimeField(default=timezone.now)
+    title = models.CharField(max_length=100, unique=True, verbose_name='название')
+    lat = models.DecimalField(max_digits=22, decimal_places=16, blank=True, null=True, verbose_name='широта')
+    lon = models.DecimalField(max_digits=22, decimal_places=16, blank=True, null=True, verbose_name='долгота')
+    requested_at = models.DateTimeField(default=timezone.now, verbose_name='дата создания')
 
     class Meta:
         verbose_name = 'Адрес'
         verbose_name_plural = 'Адреса'
+
+    def __str__(self):
+        return self.title
 
     @staticmethod
     def fetch_coordinates(address):

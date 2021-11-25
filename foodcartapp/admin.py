@@ -123,11 +123,10 @@ class OrderAdmin(admin.ModelAdmin):
         return f'{obj.firstname} {obj.lastname}'
 
     def response_change(self, request, obj):
-        res = super(OrderAdmin, self).response_post_save_change(request, obj)
+        res = super().response_post_save_change(request, obj)
         if "next" in request.GET:
             redirect_uri = request.GET['next']
             if url_has_allowed_host_and_scheme(redirect_uri, request.get_host()):
                 return HttpResponseRedirect(request.GET['next'])
             return res
-        else:
-            return res
+        return res

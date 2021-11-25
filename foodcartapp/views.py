@@ -61,10 +61,10 @@ def product_list_api(request):
     })
 
 
-@api_view(['GET', 'POST'])
-@transaction.non_atomic_requests
+@api_view(['POST'])
+@transaction.atomic
 def register_order(request):
-    response = {}
+    serialized_order = {}
 
     if request.method == 'POST':
         serializer = OrderSerializer(data=request.data)
@@ -87,6 +87,6 @@ def register_order(request):
 
         OrderItem.objects.bulk_create(order_items)
 
-        response = OrderSerializer(order).data
+        serialized_order = OrderSerializer(order).data
 
-    return Response(response)
+    return Response(serialized_order)
