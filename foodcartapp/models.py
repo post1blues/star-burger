@@ -148,18 +148,37 @@ class Order(models.Model):
     PAYMENT_METHODS = [
         ('cash', 'Наличные'),
         ('bank_card', 'Оплата картой'),
+        ('not_set', 'Не указано')
     ]
 
-    firstname = models.CharField(max_length=50)
-    lastname = models.CharField(max_length=50)
-    phonenumber = PhoneNumberField()
-    address = models.CharField(max_length=100)
-    payment_method = models.CharField(max_length=20, default='cash', choices=PAYMENT_METHODS)
-    comment = models.TextField(max_length=500, blank=True)
-    status = models.CharField(default='waiting', choices=ORDER_STATUSES, max_length=20)
-    created_at = models.DateTimeField(default=timezone.now)
-    called_at = models.DateTimeField(blank=True, null=True)
-    delivered_at = models.DateTimeField(blank=True, null=True)
+    firstname = models.CharField(max_length=50, verbose_name='Имя')
+    lastname = models.CharField(max_length=50, verbose_name='Фамилия')
+    phonenumber = PhoneNumberField(db_index=True, verbose_name='Телефон')
+    address = models.CharField(max_length=100, verbose_name='Адресс')
+    restaurant = models.ForeignKey(
+        Restaurant,
+        on_delete=models.CASCADE,
+        related_name='orders',
+        verbose_name='ресторан'
+    )
+    payment_method = models.CharField(
+        verbose_name='Способ оплаты',
+        max_length=20,
+        default='not_set',
+        choices=PAYMENT_METHODS,
+        db_index=True
+    )
+    comment = models.TextField(blank=True, verbose_name='Комментарий к заказу')
+    status = models.CharField(
+        default='waiting',
+        choices=ORDER_STATUSES,
+        max_length=20,
+        db_index=True,
+        verbose_name='Сатус'
+    )
+    created_at = models.DateTimeField(default=timezone.now, db_index=True, verbose_name='Создан в')
+    called_at = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name='Позвонили в')
+    delivered_at = models.DateTimeField(blank=True, null=True, verbose_name='Доставлен в')
 
     objects = OrderQuerySet.as_manager()
 
@@ -179,22 +198,24 @@ class OrderItem(models.Model):
     order = models.ForeignKey(
         Order,
         related_name='items',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='заказ'
     )
     product = models.ForeignKey(
         Product,
         related_name='order_items',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='продукт'
     )
     quantity = models.PositiveIntegerField(
-        default=1,
-        validators=[MinValueValidator(1)]
+        validators=[MinValueValidator(1)],
+        verbose_name='количество'
     )
     price = models.DecimalField(
         decimal_places=2,
         max_digits=10,
         validators=[MinValueValidator(0)],
-        null=True
+        verbose_name='цена'
     )
 
     def __str__(self):
