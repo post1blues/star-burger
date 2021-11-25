@@ -144,3 +144,7 @@ cython_debug/
 .parcel-cache/
 
 db.sqlite3
+
+.idea/
+.vscode/
+.DS_Store/
