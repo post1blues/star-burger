@@ -108,40 +108,47 @@ def view_orders(request):
         available_restaurants = [menu_item.restaurant for menu_item in menu_items.filter(product__in=order_products)]
         order.restaurants = available_restaurants
 
-        addresses = Address.objects.all()
+        addresses = Address.objects.filter(lat__isnull=False, lon__isnull=False)
         addresses_to_create = []
 
-        order_address = None
-        for address in addresses:
-            if address.title == order.address:
-                order_address = address
-                break
+        addresses_dict = dict()
 
-        if not order_address:
+        for address in addresses:
+            addresses_dict[address.title] = address
+
+        if not addresses_dict.get(order.address):
             order_address_pos = Address.fetch_coordinates(order.address)
+
+            if not order_address_pos:
+                continue
+
+            order_address_lon, order_address_lat = order_address_pos
             order_address = Address(
                 title=order.address,
-                lon=order_address_pos[0],
-                lat=order_address_pos[1]
+                lon=order_address_lon,
+                lat=order_address_lat
             )
             addresses_to_create.append(order_address)
 
         for restaurant in order.restaurants:
-            restaurant_address = None
-            for address in addresses:
-                if restaurant.address == address.title:
-                    restaurant_address = address
-                    break
+            if not addresses_dict.get(restaurant.address):
+                restaurant_address = Address(title=restaurant.address)
+                restaurant_pos= Address.fetch_coordinates(restaurant.address)
 
-            if not restaurant_address:
-                restaurant_pos = Address.fetch_coordinates(restaurant.address)
+                if not restaurant_pos:
+                    continue
+
+                restaurant_lon, restaurant_lat = restaurant_pos
+                restaurant_address.lon = restaurant_lon
                 restaurant_address = Address(
-                    title=restaurant.address,
-                    lon=restaurant_pos[0],
-                    lat=restaurant_pos[1]
+                    lon=restaurant_lon,
+                    lat=restaurant_lat
                 )
                 addresses_to_create.append(restaurant_address)
-            restaurant.order_distance = Address.calc_distance(restaurant_address, order_address)
+            restaurant.order_distance = Address.calc_distance(
+                addresses_dict.get(restaurant.address),
+                addresses_dict.get(order.address)
+            )
 
         Address.objects.bulk_create(addresses_to_create)
 

@@ -159,7 +159,9 @@ class Order(models.Model):
         Restaurant,
         on_delete=models.CASCADE,
         related_name='orders',
-        verbose_name='ресторан'
+        verbose_name='ресторан',
+        blank=True,
+        null=True
     )
     payment_method = models.CharField(
         verbose_name='Способ оплаты',
@@ -178,7 +180,7 @@ class Order(models.Model):
     )
     created_at = models.DateTimeField(default=timezone.now, db_index=True, verbose_name='Создан в')
     called_at = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name='Позвонили в')
-    delivered_at = models.DateTimeField(blank=True, null=True, verbose_name='Доставлен в')
+    delivered_at = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name='Доставлен в')
 
     objects = OrderQuerySet.as_manager()
 
@@ -189,9 +191,6 @@ class Order(models.Model):
         verbose_name = 'заказ'
         verbose_name_plural = 'заказы'
         ordering = ('-created_at',)
-
-    def get_total_cost(self):
-        return sum(item.get_cost() for item in self.items.all())
 
 
 class OrderItem(models.Model):
