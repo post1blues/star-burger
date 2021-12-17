@@ -43,4 +43,10 @@ class Address(models.Model):
 
     @staticmethod
     def calc_distance(start_pos, end_pos):
-        return abs(round(distance.distance((end_pos.lat, end_pos.lon), (start_pos.lat, start_pos.lon)).km, 2))
+        distance_points = None
+        try:
+            distance_points = abs(round(distance.distance((end_pos.lat, end_pos.lon), (start_pos.lat, start_pos.lon)).km, 2))
+        except ValueError as error:
+            print(f'Error during calculating distance: {error}')
+        return distance_points
+

@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator
-from django.db.models import F, Sum
+from django.db.models import F, Sum, Prefetch
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -129,9 +129,10 @@ class RestaurantMenuItem(models.Model):
 class OrderQuerySet(models.QuerySet):
     def annotate_with_order_price(self):
         order_price = Sum(F('items__quantity') * F('items__price'))
-
-        orders_with_prices = Order.objects.prefetch_related('items') \
-            .annotate(price=order_price)
+        order_items = OrderItem.objects.select_related('product')
+        orders_with_prices = Order.objects.annotate(
+            price=order_price
+        ).prefetch_related(Prefetch('items', queryset=order_items))
 
         return orders_with_prices
 
@@ -154,7 +155,7 @@ class Order(models.Model):
     firstname = models.CharField(max_length=50, verbose_name='Имя')
     lastname = models.CharField(max_length=50, verbose_name='Фамилия')
     phonenumber = PhoneNumberField(db_index=True, verbose_name='Телефон')
-    address = models.CharField(max_length=100, verbose_name='Адресс')
+    address = models.CharField(max_length=100, verbose_name='Адрес')
     restaurant = models.ForeignKey(
         Restaurant,
         on_delete=models.CASCADE,
@@ -224,5 +225,3 @@ class OrderItem(models.Model):
         verbose_name = 'элемент заказа'
         verbose_name_plural = 'элементы заказа'
 
-    def get_cost(self):
-        return self.product.price * self.quantity

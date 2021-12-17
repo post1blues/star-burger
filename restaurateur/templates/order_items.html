@@ -28,8 +28,8 @@
     {% for order in orders %}
       <tr>
         <td>{{ order.id }}</td>
-        <td>{{ order.get_status_display }}</td>
-        <td>{{ order.get_payment_method_display }}</td>
+        <td>{{ order.status }}</td>
+        <td>{{ order.payment_method }}</td>
         <td>{{ order.price }} руб.</td>
         <td>{{ order.firstname }} {{ order.lastname}}</td>
         <td>{{ order.phonenumber }}</td>

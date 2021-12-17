@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Subquery, OuterRef, Prefetch
 from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
@@ -6,7 +7,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
-from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem
+from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem, OrderItem
 from geo_places.models import Address
 
 
@@ -94,66 +95,87 @@ def view_restaurants(request):
     })
 
 
+def serialize_order(order):
+    return {
+        'id': order.id,
+        'status': order.get_status_display(),
+        'price': order.price,
+        'payment_method': order.get_payment_method_display(),
+        'firstname': order.firstname,
+        'lastname': order.lastname,
+        'phonenumber': order.phonenumber,
+        'address': order.address,
+        'comment': order.comment,
+        'restaurants': sorted(order.restaurants, key=lambda x: x.order_distance)[:10],
+    }
+
+
+def create_address(address):
+    address_to_create = None
+    coordinates = Address.fetch_coordinates(address)
+
+    if coordinates:
+        lon, lat = coordinates
+        address_to_create = Address(
+            title=address,
+            lon=lon,
+            lat=lat
+        )
+    return address_to_create
+
+
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    menu_items = RestaurantMenuItem.objects.prefetch_related('restaurant')\
-                                           .prefetch_related('product')\
-                                           .filter(availability=True)
 
-    orders = Order.objects.filter(status='waiting')\
-                          .annotate_with_order_price()
+    addresses = {address.title: address for address in Address.objects.all()}
+
+    orders = Order.objects.annotate_with_order_price()\
+        .select_related('restaurant')\
+        .filter(status='waiting')
+
+    menu_items = list(RestaurantMenuItem.objects.select_related('restaurant')\
+        .select_related('product')\
+        .filter(availability=True))
+
+    addresses_to_create = []
 
     for order in orders:
-        order_products = [order_item.product for order_item in order.items.all().distinct()]
-        available_restaurants = [menu_item.restaurant for menu_item in menu_items.filter(product__in=order_products)]
-        order.restaurants = available_restaurants
+        order.restaurants = []
+        available_restaurants = []
 
-        addresses = Address.objects.filter(lat__isnull=False, lon__isnull=False)
-        addresses_to_create = []
+        for item in order.items.all():
+            item_restaurants = [menu_item.restaurant for menu_item in menu_items if item.product == menu_item.product]
+            available_restaurants.extend(item_restaurants)
 
-        addresses_dict = dict()
+        available_restaurants = list(set(available_restaurants))
+        order_db_address = addresses.get(order.address)
 
-        for address in addresses:
-            addresses_dict[address.title] = address
+        if not order_db_address:
+            order_db_address = create_address(order.address)
+            if order_db_address:
+                addresses_to_create.append(order_db_address)
 
-        if not addresses_dict.get(order.address):
-            order_address_pos = Address.fetch_coordinates(order.address)
-
-            if not order_address_pos:
+        for restaurant in available_restaurants:
+            if not restaurant.address:
                 continue
 
-            order_address_lon, order_address_lat = order_address_pos
-            order_address = Address(
-                title=order.address,
-                lon=order_address_lon,
-                lat=order_address_lat
-            )
-            addresses_to_create.append(order_address)
+            restaurant_db_address = addresses.get(restaurant.address)
+            if not restaurant_db_address:
+                restaurant_db_address = create_address(restaurant.address)
 
-        for restaurant in order.restaurants:
-            if not addresses_dict.get(restaurant.address):
-                restaurant_address = Address(title=restaurant.address)
-                restaurant_pos= Address.fetch_coordinates(restaurant.address)
-
-                if not restaurant_pos:
+                if not restaurant_db_address:
                     continue
 
-                restaurant_lon, restaurant_lat = restaurant_pos
-                restaurant_address.lon = restaurant_lon
-                restaurant_address = Address(
-                    lon=restaurant_lon,
-                    lat=restaurant_lat
-                )
-                addresses_to_create.append(restaurant_address)
-            restaurant.order_distance = Address.calc_distance(
-                addresses_dict.get(restaurant.address),
-                addresses_dict.get(order.address)
-            )
+                addresses_to_create.append(restaurant_db_address)
+                addresses[restaurant_db_address.title] = restaurant_db_address
 
-        Address.objects.bulk_create(addresses_to_create)
+            order_distance = Address.calc_distance(restaurant_db_address, order_db_address)
 
-        order.restaurants = sorted(order.restaurants, key=lambda x: x.order_distance)
+            if order_distance:
+                restaurant.order_distance = order_distance
+                order.restaurants.append(restaurant)
 
-    return render(request, template_name='order_items.html', context={
-        'orders': orders
-    })
+    Address.objects.bulk_create(addresses_to_create)
+    context = {'orders': [serialize_order(order) for order in orders]}
+
+    return render(request, template_name='order_items.html', context=context)
