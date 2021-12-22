@@ -130,7 +130,7 @@ class OrderQuerySet(models.QuerySet):
     def annotate_with_order_price(self):
         order_price = Sum(F('items__quantity') * F('items__price'))
         order_items = OrderItem.objects.select_related('product')
-        orders_with_prices = Order.objects.annotate(
+        orders_with_prices = self.annotate(
             price=order_price
         ).prefetch_related(Prefetch('items', queryset=order_items))
 

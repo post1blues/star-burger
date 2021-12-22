@@ -130,8 +130,8 @@ def view_orders(request):
     addresses = {address.title: address for address in Address.objects.all()}
 
     orders = Order.objects.select_related('restaurant')\
-        .filter(status='waiting')\
-        .annotate_with_order_price()
+        .annotate_with_order_price()\
+        .filter(status='waiting')
 
     menu_items = list(RestaurantMenuItem.objects.select_related('restaurant')\
         .select_related('product')\
