@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.conf import settings
 import requests
 from geopy import distance
+import rollbar
 
 
 class Address(models.Model):
@@ -30,6 +31,7 @@ class Address(models.Model):
         try:
             response.raise_for_status()
         except requests.HTTPError:
+            rollbar.report_message('Can\'t fetch coordinates', 'warning')
             return None
 
         found_places = response.json()['response']['GeoObjectCollection']['featureMember']
@@ -47,6 +49,7 @@ class Address(models.Model):
         try:
             distance_points = abs(round(distance.distance((end_pos.lat, end_pos.lon), (start_pos.lat, start_pos.lon)).km, 2))
         except ValueError as error:
+            rollbar.report_message('Can\'t calculate distance', 'warning')
             print(f'Error during calculating distance: {error}')
         return distance_points
 
