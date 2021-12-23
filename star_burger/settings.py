@@ -2,6 +2,7 @@ import os
 import dj_database_url
 import rollbar
 from environs import Env
+from git import Repo
 
 
 env = Env()
@@ -86,10 +87,10 @@ WSGI_APPLICATION = 'star_burger.wsgi.application'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
+db_url = env('DB_URL')
+
 DATABASES = {
-    'default': dj_database_url.config(
-        default='sqlite:////{0}'.format(os.path.join(BASE_DIR, 'db.sqlite3'))
-    )
+    'default': dj_database_url.parse(db_url, conn_max_age=600)
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -129,10 +130,14 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "bundles"),
 ]
 
+local_repo = Repo(path=BASE_DIR)
+local_branch = local_repo.active_branch.name
+
 ROLLBAR = {
     'access_token': env('ROLLBAR_TOKEN'),
     'environment': env('ROLLBAR_ENV', 'production'),
     'root': BASE_DIR,
+    'branch': local_branch
 }
 
 rollbar.init(**ROLLBAR)
