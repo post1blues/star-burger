@@ -90,11 +90,7 @@ MEDIA_URL = '/media/'
 db_url = env('DB_URL')
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'db.sqlite3',
-    },
-    # 'default2': dj_database_url.parse(db_url, conn_max_age=600)
+    'default2': dj_database_url.parse(db_url, conn_max_age=600)
 }
 
 AUTH_PASSWORD_VALIDATORS = [
