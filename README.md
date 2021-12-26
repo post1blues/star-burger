@@ -174,7 +174,7 @@ parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
 4. Перейти в папку `/opt/` и скачать код командой `git clone git@github.com:post1blues/star-burger.git`
 5. Создать переменные окружения `export ROLLBAR_TOKEN=YOUR_ROLLBAR_TOKEN` и `export ROLLBAR_ENV=production`
 6. Создать файл `.env` по примеру выше
-7. Сделать файл `deploy.ssh` испольняемым командой `chmod u+x deploy.sh`
+7. Сделать файл `deploy.ssh` испольняемым командой `chmod u+x deploy.sh` (файл находится в корне проекта)
 8. Запустить файл `deploy.ssh` командой `./deploy.ssh`
 
 В дальнейшем при изменении в репозитории будет достаточно запускать скрипт `deploy.ssh`
