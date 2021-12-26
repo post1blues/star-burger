@@ -9,11 +9,11 @@ git pull
 
 echo "install requirements for python and js"
 pip install -r requirements.txt
-npm install --production
+npm install --production -
 
 echo "build static and js"
-python manage.py collectstatic
 parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
+python manage.py collectstatic
 
 echo "make migrations"
 python manage.py migrate
