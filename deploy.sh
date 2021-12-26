@@ -3,6 +3,7 @@
 export BASE_DIR=/opt/star-burger/
 
 echo "setup environment and git pull"
+
 cd $BASE_DIR
 source venv/bin/activate
 git pull
@@ -21,5 +22,11 @@ python manage.py migrate
 echo "prepare systemd services"
 systemctl restart star-burger.service
 systemctl reload nginx.service
+
+curl --header "Content-Type: application/json" \
+     --header "X-Rollbar-Access-Token: $ROLLBAR_TOKEN" \
+     --request POST \
+     --data "{\"environment\" $ROLLBAR_ENV, \"revision\": $(git rev-parse --short HEAD)}" \
+    https://api.rollbar.com/api/1/deploy
 
 echo "Deploy is finished"
