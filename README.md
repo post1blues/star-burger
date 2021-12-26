@@ -53,11 +53,27 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-Создайте файл базы данных SQLite и отмигрируйте её следующей командой:
+Поднимите базу данных Postgres.
 
+Для работы необходим api-ключ Яндекс Геокодер и api-ключ для Rollbar.
+
+Настройте переменные окружения - создайте в корне проекта файл `.env` и запишите туда необходимые переменные:
+```sh
+DEBUG=True
+ALLOWED_HOSTS=yourdomain.com,your_ip
+YANDEX_API_KEY=YOUR_SECRET_KEY
+ROLLBAR_TOKEN=YOUR_SECRET_TOKEN
+ROLLBAR_ENV=development
+DB_URL=postgres://USER:PASSWORD@IP:PORT/DB_TABLE
+```
+
+Выполнить миграции
 ```sh
 python manage.py migrate
 ```
+
+Загрузить базу данных тестовыми данными:
+`python manage.py loaddata dumped_db.json`
 
 Запустите сервер:
 
@@ -148,6 +164,25 @@ parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте. Не стоит использовать значение по-умолчанию, **замените на своё**.
 - `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
 - `YANDEX_API_KEY` - API-ключ [Yandex Geocoder](https://yandex.com/dev/maps/geocoder/) для работы с гео-данными пользователя
+- `ROLLBAR_TOKEN` - API-ключ [Rollbar](https://rollbar.com/)
+- `ROLLBAR_ENV`   - установить в значение `production`
+
+## Деплой на сервер
+1. Поставить и настроить `nginx`
+2. Поставить и настроить `postgresql`
+3. Настроить ключи ssh
+4. Перейти в папку `/opt/` и скачать код командой `git clone git@github.com:post1blues/star-burger.git`
+5. Создать переменные окружения `export ROLLBAR_TOKEN=YOUR_ROLLBAR_TOKEN` и `export ROLLBAR_ENV=production`
+6. Создать файл `.env` по примеру выше
+7. Сделать файл `deploy.ssh` испольняемым командой `chmod u+x deploy.sh`
+8. Запустить файл `deploy.ssh` командой `./deploy.ssh`
+
+В дальнейшем при изменении в репозитории будет достаточно запускать скрипт `deploy.ssh`
+
+## Доступы к сайту и серверу
+* Сайт можно найти по адресу [starburger.club](https://starburger.club/)
+* IP сервера - `157.230.97.7`
+* Username - `root`
 
 ## Цели проекта
 
