@@ -150,3 +150,6 @@ db.sqlite3
 .DS_Store/
 
 /staticfiles/
+
+package-lock.json
+bundles/
