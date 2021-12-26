@@ -26,7 +26,7 @@ systemctl reload nginx.service
 curl --header "Content-Type: application/json" \
      --header "X-Rollbar-Access-Token: $ROLLBAR_TOKEN" \
      --request POST \
-     --data "{\"environment\" $ROLLBAR_ENV, \"revision\": $(git rev-parse --short HEAD)}" \
-    https://api.rollbar.com/api/1/deploy
+     --data "{\"environment\": \"$ROLLBAR_ENV\", \"revision\": \"$(git rev-parse --short HEAD)\"}" \
+     https://api.rollbar.com/api/1/deploy
 
 echo "Deploy is finished"
