@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e
 export BASE_DIR=/opt/star-burger/
 
 echo "setup environment and git pull"
