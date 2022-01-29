@@ -17,7 +17,7 @@ parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
 python manage.py collectstatic --noinput
 
 echo "make migrations"
-python manage.py migrate
+python manage.py migrate --noinput
 
 echo "prepare systemd services"
 systemctl restart star-burger.service
